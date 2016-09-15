@@ -1,0 +1,66 @@
+#include "open_gps.h"
+#include "LatLong-UTMconversion.h"
+#include "ros/ros.h"
+#include "std_msgs/Float64MultiArray.h"
+ int main(int argc, char **argv) {
+ ros::init(argc, argv, "GPS");
+ ros::NodeHandle n;
+ ros::Publisher chatter_pub = n.advertise<std_msgs::Float64MultiArray>("GPS_read", 10);
+ ros::Rate loop_rate(500);
+  
+  int gps_data_size = 1;
+  char const *gps_port_name = "/dev/ttyUSB0";
+  char const *gps_port_name_2 = "/dev/ttyUSB1";
+  float lon, lon2;
+  float lat, lat2;
+  bool flag_DataReady = false;
+  bool flag_DataReady2 = false;
+  int RefEllipsoid = 23;
+  double UTMEasting, UTMNorthing;
+  char UTMZone[4];
+  double output[4];
+
+  int fd_gps = open_gps(gps_port_name, gps_data_size);
+  if(fd_gps < 0){
+  	printf("%d, Failed to Open GPS Port!!!\n",fd_gps);
+  }
+  
+  int fd_gps2 = open_gps2(gps_port_name_2, gps_data_size);
+  if(fd_gps2 < 0){
+  	printf("%d, Failed to Open GPS Port!!!\n",fd_gps2);
+  }
+  
+  while(ros::ok())
+         { 
+         std_msgs::Float64MultiArray msg;
+  	//printf("-1\n");
+  	flag_DataReady = read_gps(fd_gps, lon, lat);
+  	//printf("0\n");
+  	if(flag_DataReady == true){
+  	printf("1\n");
+  		flag_DataReady2 = read_gps(fd_gps2, lon2, lat2);
+  		printf("2\n");
+  		if(flag_DataReady2 == true){
+  			printf("3\n");
+	  		LLtoUTM(RefEllipsoid, lat, lon, UTMNorthing, UTMEasting, UTMZone);
+	  		//printf("lon: %f , lat: %f , UTMN : %f, UTME : %f \n", lon, lat, UTMNorthing, UTMEasting);
+	  		output[0] = lat;
+	  		output[1] = lon;
+	  		//output[2] = UTMNorthing;
+	  		//output[3] = UTMEasting;
+	  		output[2] = lat2;
+	  		output[3] = lon2;
+	  		
+	  		for (int i = 0;i<4;i++){
+		 	msg.data.push_back(output[i]);
+			}
+		 
+		 	chatter_pub.publish(msg);
+		 	}
+  		}
+  }
+  
+
+  return 0;
+
+}
