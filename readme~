@@ -1,0 +1,50 @@
+/*
+ *  readme
+ *
+ *  Created on: Sep 14, 2016
+ *      Author: Daewon Lee
+ */
+
+1. Set Parameters in main.cpp
+	1.1 height  :  desired height in meter
+	1.2 direction : CCW or CW
+	1.3 radius : radius of the circle trajectory in meter
+	1.4 angle : angle of the pie. (ex: 360*D2R = full circle, 180*D2R = half circle)
+
+2. cd ~/catkin
+   catkin_make or catkin build solo_path_gen
+   
+3. In new terminal, run
+   roscore
+   
+4. Generate fake GPS signal of the target (Can be replaced by real ROS message)
+In new terminal, run
+
+	rostopic pub -r 5  /target_GPS std_msgs/Float64MultiArray """ 
+	layout: 
+	  dim: [{label: 'x', size: 1234, stride: 1},{label: 'y', size: 1234, 
+	stride: 1} ] 
+	  data_offset: 0 
+	data: [-75.422928, 43.238391, 10] 
+	"""  
+
+4. Generate fake GPS signal of the UAV (Can be replaced by real ROS message)
+In new terminal, run
+
+	rostopic pub -r 5  /UAV_GPS std_msgs/Float64MultiArray """ 
+	layout: 
+	  dim: [{label: 'x', size: 1234, stride: 1},{label: 'y', size: 1234, 
+	stride: 1} ] 
+	  data_offset: 0 
+	data:  [-75.420395, 43.236609, 10]
+	"""  
+	
+5. In new terminal, run
+
+	rosrun solo_path_gen solo_path_gen_node
+	
+6. In QGroundControl, navigate to sync/Load From File...
+   and open mission.txt in the folder where the solo_path_gen run.
+   
+   
+    
